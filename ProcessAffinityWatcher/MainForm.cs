@@ -116,13 +116,15 @@ namespace ProcessAffinityWatcher
                 if (!lstWatchList.Items.Contains(value))
                 {
                     lstWatchList.Items.Add(value);
+                    Dictionary<string, int> settings = GetAffinitySettings();
+                    int startAffinity = (int)Math.Pow(2, Environment.ProcessorCount) - 1;
                     Process[] process = Process.GetProcessesByName(value);
                     if (process.Length > 0)
                     {
-                        Dictionary<string, int> settings = GetAffinitySettings();
-                        settings.Add(value, process[0].ProcessorAffinity.ToInt32());
-                        SaveAffinitySettings(settings);
+                        startAffinity = process[0].ProcessorAffinity.ToInt32();
                     }
+                    settings.Add(value, startAffinity);
+                    SaveAffinitySettings(settings);
                 }
                 lstWatchList.SelectedIndex = lstWatchList.Items.Count-1;
             }
@@ -143,36 +145,32 @@ namespace ProcessAffinityWatcher
                 lblProcessStatus.Text = "---";
             }
 
-            Process[] process = Process.GetProcessesByName(processSelected);
-            if(process.Length > 0)
+            Dictionary<string, int> settings = GetAffinitySettings();
+            int cpuMask = settings[processSelected];
+
+            if ((cpuMask & 32768) != 0) chkCPU15.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 16384) != 0) chkCPU14.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 8192) != 0) chkCPU13.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 4096) != 0) chkCPU12.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 2048) != 0) chkCPU11.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 1024) != 0) chkCPU10.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 512) != 0) chkCPU09.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 256) != 0) chkCPU08.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 128) != 0) chkCPU07.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 64) != 0) chkCPU06.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 32) != 0) chkCPU05.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 16) != 0) chkCPU04.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 8) != 0) chkCPU03.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 4) != 0) chkCPU02.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 2) != 0) chkCPU01.Checked = true; else chkCPU15.Checked = false;
+            if ((cpuMask & 1) != 0) chkCPU00.Checked = true; else chkCPU15.Checked = false;
+
+            if(cpuMask == (Math.Pow(2, Environment.ProcessorCount)-1))
             {
-                Dictionary<string, int> settings = GetAffinitySettings();
-                int cpuMask = settings[processSelected];
-
-                if ((cpuMask & 32768) != 0) chkCPU15.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 16384) != 0) chkCPU14.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 8192) != 0) chkCPU13.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 4096) != 0) chkCPU12.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 2048) != 0) chkCPU11.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 1024) != 0) chkCPU10.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 512) != 0) chkCPU09.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 256) != 0) chkCPU08.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 128) != 0) chkCPU07.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 64) != 0) chkCPU06.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 32) != 0) chkCPU05.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 16) != 0) chkCPU04.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 8) != 0) chkCPU03.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 4) != 0) chkCPU02.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 2) != 0) chkCPU01.Checked = true; else chkCPU15.Checked = false;
-                if ((cpuMask & 1) != 0) chkCPU00.Checked = true; else chkCPU15.Checked = false;
-
-                if(cpuMask == (Math.Pow(2, Environment.ProcessorCount)-1))
-                {
-                    chkCPUAll.Checked = true;
-                } else
-                {
-                    chkCPUAll.Checked = false;
-                }
+                chkCPUAll.Checked = true;
+            } else
+            {
+                chkCPUAll.Checked = false;
             }
         }
 
@@ -209,7 +207,7 @@ namespace ProcessAffinityWatcher
 
         private Dictionary<string, int> GetAffinitySettings()
         {
-            //Debug.WriteLine("Settings loaded: " + Properties.Settings.Default.AffinitySettings);
+            Debug.WriteLine("Settings loaded: " + Properties.Settings.Default.AffinitySettings);
 
             Dictionary<string, int> settings = new Dictionary<string, int>();
             string s = Properties.Settings.Default.AffinitySettings;
@@ -224,7 +222,7 @@ namespace ProcessAffinityWatcher
                         try
                         {
                             settings.Add(processAffinity[0], int.Parse(processAffinity[1]));
-                        } catch { }
+                        } catch {}
                     }
                 }
             }
@@ -238,7 +236,7 @@ namespace ProcessAffinityWatcher
             int i = 0;
             foreach(string key in settings.Keys)
             {
-                parts[i] = key + ":" + settings[key];
+                parts[i] = key + ":" + settings[key].ToString();
                 i++;
             }
 
