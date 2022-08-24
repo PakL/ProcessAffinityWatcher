@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Collections;
-using Newtonsoft.Json;
 
 namespace ProcessAffinityWatcher
 {
@@ -211,17 +210,39 @@ namespace ProcessAffinityWatcher
         private Dictionary<string, int> GetAffinitySettings()
         {
             //Debug.WriteLine("Settings loaded: " + Properties.Settings.Default.AffinitySettings);
-            Dictionary<string, int> settings = JsonConvert.DeserializeObject<Dictionary<string, int>>(Properties.Settings.Default.AffinitySettings);
-            if (settings == null)
+
+            Dictionary<string, int> settings = new Dictionary<string, int>();
+            string s = Properties.Settings.Default.AffinitySettings;
+            if(s != null && s.Length > 0)
             {
-                settings = new Dictionary<string, int>();
+                string[] parts = s.Split('\\');
+                foreach (string p in parts)
+                {
+                    string[] processAffinity = p.Split(new char[1] { ':' }, 2);
+                    if(processAffinity.Length == 2)
+                    {
+                        try
+                        {
+                            settings.Add(processAffinity[0], int.Parse(processAffinity[1]));
+                        } catch { }
+                    }
+                }
             }
+
             return settings;
         }
 
         private void SaveAffinitySettings(Dictionary<string, int> settings)
         {
-            Properties.Settings.Default.AffinitySettings = JsonConvert.SerializeObject(settings);
+            string[] parts = new string[settings.Count];
+            int i = 0;
+            foreach(string key in settings.Keys)
+            {
+                parts[i] = key + ":" + settings[key];
+                i++;
+            }
+
+            Properties.Settings.Default.AffinitySettings = String.Join("\\", parts);
             Properties.Settings.Default.Save();
         }
 
@@ -351,7 +372,7 @@ namespace ProcessAffinityWatcher
 
         private void btnInfo_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Created by Pakl (pakl.dev) under the MIT license.\nIncludes Newtonsoft.Json. JamesNK/Newtonsoft.Json is licensed under the MIT License.\n\nThe MIT License (MIT)\n\nProcessAffinityWatcher Copyright(c) 2022 Pascal Pohl\nNewtonsoft.Json Copyright(c) 2007 James Newton - King\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.", "Product Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("Created by Pakl (pakl.dev) under the MIT license.\n\nThe MIT License (MIT)\n\nCopyright(c) 2022 Pascal Pohl\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.", "Product Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
     }
 
