@@ -57,7 +57,6 @@
             this.lblProcessName = new System.Windows.Forms.Label();
             this.tmrProcessCheck = new System.Windows.Forms.Timer(this.components);
             this.trayMain = new System.Windows.Forms.NotifyIcon(this.components);
-            this.btnInfo = new System.Windows.Forms.Button();
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.mitFile = new System.Windows.Forms.ToolStripMenuItem();
             this.mitMinimizeTray = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,6 +66,9 @@
             this.mitPoll10 = new System.Windows.Forms.ToolStripMenuItem();
             this.mitPoll30 = new System.Windows.Forms.ToolStripMenuItem();
             this.mitPoll60 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitInfo = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitInfoVersion = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitAbout = new System.Windows.Forms.ToolStripMenuItem();
             this.grpAffinity.SuspendLayout();
             this.mnuMain.SuspendLayout();
             this.SuspendLayout();
@@ -379,23 +381,12 @@
             this.trayMain.Visible = true;
             this.trayMain.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.trayMain_MouseDoubleClick);
             // 
-            // btnInfo
-            // 
-            this.btnInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnInfo.Location = new System.Drawing.Point(510, 27);
-            this.btnInfo.Name = "btnInfo";
-            this.btnInfo.Size = new System.Drawing.Size(42, 31);
-            this.btnInfo.TabIndex = 4;
-            this.btnInfo.Text = "ℹ️";
-            this.btnInfo.UseVisualStyleBackColor = true;
-            this.btnInfo.Click += new System.EventHandler(this.btnInfo_Click);
-            // 
             // mnuMain
             // 
             this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.mitFile,
-            this.mitPolling});
+            this.mitPolling,
+            this.mitInfo});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
             this.mnuMain.Size = new System.Drawing.Size(564, 24);
@@ -473,12 +464,34 @@
             this.mitPoll60.Text = "60 seconds";
             this.mitPoll60.Click += new System.EventHandler(this.mitPoll60_Click);
             // 
+            // mitInfo
+            // 
+            this.mitInfo.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mitInfoVersion,
+            this.mitAbout});
+            this.mitInfo.Name = "mitInfo";
+            this.mitInfo.Size = new System.Drawing.Size(40, 20);
+            this.mitInfo.Text = "Info";
+            // 
+            // mitInfoVersion
+            // 
+            this.mitInfoVersion.Enabled = false;
+            this.mitInfoVersion.Name = "mitInfoVersion";
+            this.mitInfoVersion.Size = new System.Drawing.Size(180, 22);
+            this.mitInfoVersion.Text = "Version";
+            // 
+            // mitAbout
+            // 
+            this.mitAbout.Name = "mitAbout";
+            this.mitAbout.Size = new System.Drawing.Size(180, 22);
+            this.mitAbout.Text = "About";
+            this.mitAbout.Click += new System.EventHandler(this.btnInfo_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(564, 401);
-            this.Controls.Add(this.btnInfo);
             this.Controls.Add(this.grpAffinity);
             this.Controls.Add(this.btnAddProcess);
             this.Controls.Add(this.cmbProcessSelect);
@@ -529,7 +542,6 @@
         private System.Windows.Forms.Timer tmrProcessCheck;
         private System.Windows.Forms.Label lblProcessStatus;
         private System.Windows.Forms.NotifyIcon trayMain;
-        private System.Windows.Forms.Button btnInfo;
         private System.Windows.Forms.MenuStrip mnuMain;
         private System.Windows.Forms.ToolStripMenuItem mitFile;
         private System.Windows.Forms.ToolStripMenuItem mitMinimizeTray;
@@ -539,6 +551,9 @@
         private System.Windows.Forms.ToolStripMenuItem mitPoll10;
         private System.Windows.Forms.ToolStripMenuItem mitPoll30;
         private System.Windows.Forms.ToolStripMenuItem mitPoll60;
+        private System.Windows.Forms.ToolStripMenuItem mitInfo;
+        private System.Windows.Forms.ToolStripMenuItem mitInfoVersion;
+        private System.Windows.Forms.ToolStripMenuItem mitAbout;
     }
 }
 

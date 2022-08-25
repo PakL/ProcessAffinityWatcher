@@ -59,6 +59,8 @@ namespace ProcessAffinityWatcher
 
             LoadSettings();
 
+            mitInfoVersion.Text = "Version " + Application.ProductVersion;
+
             TmrProcessCheck_Tick(null, null);
         }
 
