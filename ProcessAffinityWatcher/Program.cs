@@ -16,9 +16,7 @@ namespace ProcessAffinityWatcher
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            MainForm mainForm = new MainForm();
-            mainForm.TmrProcessCheck_Tick(null, null);
-            Application.Run(mainForm);
+            Application.Run(new MainForm());
         }
     }
 }

@@ -18,29 +18,39 @@ namespace ProcessAffinityWatcher
         private bool waitCheckbox = false;
         private Dictionary<string, string> lastStatus = new Dictionary<string, string>();
 
+        private CheckBox[] checkBoxes = new CheckBox[16];
+
         public MainForm()
         {
             InitializeComponent();
+
+            checkBoxes[0] = chkCPU00;
+            checkBoxes[1] = chkCPU01;
+            checkBoxes[2] = chkCPU02;
+            checkBoxes[3] = chkCPU03;
+            checkBoxes[4] = chkCPU04;
+            checkBoxes[5] = chkCPU05;
+            checkBoxes[6] = chkCPU06;
+            checkBoxes[7] = chkCPU07;
+            checkBoxes[8] = chkCPU08;
+            checkBoxes[9] = chkCPU09;
+            checkBoxes[10] = chkCPU10;
+            checkBoxes[11] = chkCPU11;
+            checkBoxes[12] = chkCPU12;
+            checkBoxes[13] = chkCPU13;
+            checkBoxes[14] = chkCPU14;
+            checkBoxes[15] = chkCPU15;
+
+            TmrProcessCheck_Tick(null, null);
         }
 
-        public void TmrProcessCheck_Tick(object sender, EventArgs e)
+        private void TmrProcessCheck_Tick(object sender, EventArgs e)
         {
             int pc = Environment.ProcessorCount;
-            if (pc < 16) chkCPU15.Enabled = false;
-            if (pc < 15) chkCPU14.Enabled = false;
-            if (pc < 14) chkCPU13.Enabled = false;
-            if (pc < 13) chkCPU12.Enabled = false;
-            if (pc < 12) chkCPU11.Enabled = false;
-            if (pc < 11) chkCPU10.Enabled = false;
-            if (pc < 10) chkCPU09.Enabled = false;
-            if (pc < 9) chkCPU08.Enabled = false;
-            if (pc < 8) chkCPU07.Enabled = false;
-            if (pc < 7) chkCPU06.Enabled = false;
-            if (pc < 6) chkCPU05.Enabled = false;
-            if (pc < 5) chkCPU04.Enabled = false;
-            if (pc < 4) chkCPU03.Enabled = false;
-            if (pc < 3) chkCPU02.Enabled = false;
-            if (pc < 2) chkCPU01.Enabled = false;
+            for(int i = 1; i < checkBoxes.Length; i++)
+            {
+                if(pc < (i+1)) checkBoxes[i].Enabled = false;
+            }
 
             cmbProcessSelect.Enabled = false;
             cmbProcessSelect.Items.Clear();
@@ -148,30 +158,12 @@ namespace ProcessAffinityWatcher
             Dictionary<string, int> settings = GetAffinitySettings();
             int cpuMask = settings[processSelected];
 
-            if ((cpuMask & 32768) != 0) chkCPU15.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 16384) != 0) chkCPU14.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 8192) != 0) chkCPU13.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 4096) != 0) chkCPU12.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 2048) != 0) chkCPU11.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 1024) != 0) chkCPU10.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 512) != 0) chkCPU09.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 256) != 0) chkCPU08.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 128) != 0) chkCPU07.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 64) != 0) chkCPU06.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 32) != 0) chkCPU05.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 16) != 0) chkCPU04.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 8) != 0) chkCPU03.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 4) != 0) chkCPU02.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 2) != 0) chkCPU01.Checked = true; else chkCPU15.Checked = false;
-            if ((cpuMask & 1) != 0) chkCPU00.Checked = true; else chkCPU15.Checked = false;
-
-            if(cpuMask == (Math.Pow(2, Environment.ProcessorCount)-1))
+            for(int i = 0; i < checkBoxes.Length; i++)
             {
-                chkCPUAll.Checked = true;
-            } else
-            {
-                chkCPUAll.Checked = false;
+                checkBoxes[i].Checked = ((cpuMask & (1 << i)) != 0);
             }
+
+            chkCPUAll.Checked = (cpuMask == (Math.Pow(2, Environment.ProcessorCount) - 1));
         }
 
         private void ChkCPU_CheckedChanged(object sender, EventArgs e)
@@ -294,41 +286,33 @@ namespace ProcessAffinityWatcher
             string processSelected = lstWatchList.Items[lstWatchList.SelectedIndex].ToString();
 
             int affinityMask = 0;
-            if (chkCPU00.Checked && chkCPU00.Enabled) affinityMask |= 1;
-            if (chkCPU01.Checked && chkCPU01.Enabled) affinityMask |= 2;
-            if (chkCPU02.Checked && chkCPU02.Enabled) affinityMask |= 4;
-            if (chkCPU03.Checked && chkCPU03.Enabled) affinityMask |= 8;
-            if (chkCPU04.Checked && chkCPU04.Enabled) affinityMask |= 16;
-            if (chkCPU05.Checked && chkCPU05.Enabled) affinityMask |= 32;
-            if (chkCPU06.Checked && chkCPU06.Enabled) affinityMask |= 64;
-            if (chkCPU07.Checked && chkCPU07.Enabled) affinityMask |= 128;
-            if (chkCPU08.Checked && chkCPU08.Enabled) affinityMask |= 256;
-            if (chkCPU09.Checked && chkCPU09.Enabled) affinityMask |= 512;
-            if (chkCPU10.Checked && chkCPU10.Enabled) affinityMask |= 1024;
-            if (chkCPU11.Checked && chkCPU11.Enabled) affinityMask |= 2048;
-            if (chkCPU12.Checked && chkCPU12.Enabled) affinityMask |= 4096;
-            if (chkCPU13.Checked && chkCPU13.Enabled) affinityMask |= 8192;
-            if (chkCPU14.Checked && chkCPU14.Enabled) affinityMask |= 16384;
-            if (chkCPU15.Checked && chkCPU15.Enabled) affinityMask |= 32768;
-
-            if(affinityMask > 0)
+            for (int i = 0; i < checkBoxes.Length; i++)
             {
-                Dictionary<string, int> settings = GetAffinitySettings();
-                settings[processSelected] = affinityMask;
-                SaveAffinitySettings(settings);
+                if (checkBoxes[i].Checked && checkBoxes[i].Enabled) affinityMask |= (1 << i);
+            }
 
-                Process[] processes = Process.GetProcessesByName(processSelected);
-                if(processes.Length > 0)
+            if(affinityMask <= 0)
+            {
+                checkBoxes[0].Checked = true;
+                affinityMask = 1;
+            }
+
+            Dictionary<string, int> settings = GetAffinitySettings();
+            settings[processSelected] = affinityMask;
+            SaveAffinitySettings(settings);
+
+            Process[] processes = Process.GetProcessesByName(processSelected);
+            if (processes.Length > 0)
+            {
+                foreach (Process process in processes)
                 {
-                    foreach (Process process in processes)
-                    {
-                        process.ProcessorAffinity = new IntPtr(affinityMask);
-                    }
-                    SetProcessStatus(processSelected, "Affinity set at " + DateTime.Now.ToLongTimeString());
-                } else
-                {
-                    SetProcessStatus(processSelected, "Process not found at " + DateTime.Now.ToLongTimeString());
+                    process.ProcessorAffinity = new IntPtr(affinityMask);
                 }
+                SetProcessStatus(processSelected, "Affinity set at " + DateTime.Now.ToLongTimeString());
+            }
+            else
+            {
+                SetProcessStatus(processSelected, "Process not found at " + DateTime.Now.ToLongTimeString());
             }
         }
 
