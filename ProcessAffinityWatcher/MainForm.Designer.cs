@@ -74,6 +74,8 @@
             // 
             // cmbProcessSelect
             // 
+            this.cmbProcessSelect.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Append;
+            this.cmbProcessSelect.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.cmbProcessSelect.Enabled = false;
             this.cmbProcessSelect.FormattingEnabled = true;
             this.cmbProcessSelect.Location = new System.Drawing.Point(12, 12);
