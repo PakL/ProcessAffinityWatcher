@@ -57,6 +57,8 @@ namespace ProcessAffinityWatcher
             lstWatchList.ValueMember = "ProcessName";
             lstWatchList.DataSource = watchBs;
 
+            LoadSettings();
+
             TmrProcessCheck_Tick(null, null);
         }
 
@@ -70,7 +72,7 @@ namespace ProcessAffinityWatcher
             }
 
             // Refresh active processes list
-            cmbProcessSelect.Enabled = false;
+            //cmbProcessSelect.Enabled = false;
             //activeProcessList.Clear();
             
             Process[] processes = Process.GetProcesses();
@@ -151,6 +153,9 @@ namespace ProcessAffinityWatcher
             }
 
             watchBs.ResetBindings(false);
+
+
+            tmrProcessCheck.Interval = (mitPoll5.Checked ? 5 : (mitPoll30.Checked ? 30 : (mitPoll60.Checked ? 60 : 10))) * 1000;
         }
 
         private void CmbProcessSelect_Enter(object sender, EventArgs e)
@@ -267,7 +272,7 @@ namespace ProcessAffinityWatcher
             {
                 string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
-                string filePath = Path.Combine(specificFolder, "settings.config");
+                string filePath = Path.Combine(specificFolder, "affinity.config");
                 StreamReader sr = new StreamReader(filePath);
 
                 string line = sr.ReadLine();
@@ -298,7 +303,7 @@ namespace ProcessAffinityWatcher
                 string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
                 Directory.CreateDirectory(specificFolder);
 
-                StreamWriter sw = new StreamWriter(Path.Combine(specificFolder, "settings.config"));
+                StreamWriter sw = new StreamWriter(Path.Combine(specificFolder, "affinity.config"));
                 foreach (string key in settings.Keys)
                 {
                     sw.WriteLine(key + ":" + settings[key].ToString());
@@ -424,7 +429,7 @@ namespace ProcessAffinityWatcher
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            if (FormWindowState.Minimized == WindowState)
+            if (mitMinimizeTray.Checked && FormWindowState.Minimized == WindowState)
             {
                 Hide();
                 trayMain.Visible = true;
@@ -434,6 +439,111 @@ namespace ProcessAffinityWatcher
         private void btnInfo_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Created by Pakl (pakl.dev) under the MIT license.\n\nThe MIT License (MIT)\n\nCopyright(c) 2022 Pascal Pohl\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files(the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and / or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.", "Product Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void mitExit_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void LoadSettings()
+        {
+            try
+            {
+                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
+                string filePath = Path.Combine(specificFolder, "settings.ini");
+                StreamReader sr = new StreamReader(filePath);
+
+                string line = sr.ReadLine();
+                while (line != null)
+                {
+                    string[] settingsKeyVal = line.Split(new char[1] { '=' }, 2);
+                    if (settingsKeyVal.Length == 2)
+                    {
+                        string key = settingsKeyVal[0].Trim();
+                        string value = settingsKeyVal[1].Trim();
+
+                        switch(key)
+                        {
+                            case "minimizeTray":
+                                mitMinimizeTray.Checked = (value.ToLower() == "true" || value == "1");
+                                break;
+                            case "polling":
+                                mitPoll5.Checked = (value == "5");
+                                mitPoll10.Checked = (value == "10");
+                                mitPoll30.Checked = (value == "30");
+                                mitPoll60.Checked = (value == "60");
+                                break;
+                        }
+                    }
+                    line = sr.ReadLine();
+                }
+                sr.Close();
+            }
+            catch { }
+        }
+
+        private void SaveSettings()
+        {
+            try
+            {
+                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
+                Directory.CreateDirectory(specificFolder);
+
+                StreamWriter sw = new StreamWriter(Path.Combine(specificFolder, "settings.ini"));
+
+                sw.WriteLine("minimizeTray=" + (mitMinimizeTray.Checked ? "true" : "false"));
+                sw.WriteLine("polling=" + (mitPoll5.Checked ? "5" : (mitPoll30.Checked ? "30" : (mitPoll60.Checked ? "60" : "10"))));
+
+                sw.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to save settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void mitPoll5_Click(object sender, EventArgs e)
+        {
+            mitPoll5.Checked = true;
+            mitPoll10.Checked = false;
+            mitPoll30.Checked = false;
+            mitPoll60.Checked = false;
+            SaveSettings();
+        }
+
+        private void mitPoll10_Click(object sender, EventArgs e)
+        {
+            mitPoll5.Checked = false;
+            mitPoll10.Checked = true;
+            mitPoll30.Checked = false;
+            mitPoll60.Checked = false;
+            SaveSettings();
+        }
+
+        private void mitPoll30_Click(object sender, EventArgs e)
+        {
+            mitPoll5.Checked = false;
+            mitPoll10.Checked = false;
+            mitPoll30.Checked = true;
+            mitPoll60.Checked = false;
+            SaveSettings();
+        }
+
+        private void mitPoll60_Click(object sender, EventArgs e)
+        {
+            mitPoll5.Checked = false;
+            mitPoll10.Checked = false;
+            mitPoll30.Checked = false;
+            mitPoll60.Checked = true;
+            SaveSettings();
+        }
+
+        private void mitMinimizeTray_Click(object sender, EventArgs e)
+        {
+            SaveSettings();
         }
     }
 

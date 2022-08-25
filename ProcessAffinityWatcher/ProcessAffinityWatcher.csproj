@@ -137,6 +137,6 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>powershell -Command "&amp; {Set-AuthenticodeSignature $(TargetPath) -Certificate (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ExpiringInDays 366)}"</PostBuildEvent>
+    <PostBuildEvent>rem powershell -Command "&amp; {Set-AuthenticodeSignature $(TargetPath) -Certificate (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert -ExpiringInDays 366)}"</PostBuildEvent>
   </PropertyGroup>
 </Project>

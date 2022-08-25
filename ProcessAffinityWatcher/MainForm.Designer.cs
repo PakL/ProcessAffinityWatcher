@@ -58,7 +58,17 @@
             this.tmrProcessCheck = new System.Windows.Forms.Timer(this.components);
             this.trayMain = new System.Windows.Forms.NotifyIcon(this.components);
             this.btnInfo = new System.Windows.Forms.Button();
+            this.mnuMain = new System.Windows.Forms.MenuStrip();
+            this.mitFile = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitMinimizeTray = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitPolling = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitPoll5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitPoll10 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitPoll30 = new System.Windows.Forms.ToolStripMenuItem();
+            this.mitPoll60 = new System.Windows.Forms.ToolStripMenuItem();
             this.grpAffinity.SuspendLayout();
+            this.mnuMain.SuspendLayout();
             this.SuspendLayout();
             // 
             // lstWatchList
@@ -66,7 +76,7 @@
             this.lstWatchList.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.lstWatchList.FormattingEnabled = true;
-            this.lstWatchList.Location = new System.Drawing.Point(12, 39);
+            this.lstWatchList.Location = new System.Drawing.Point(12, 54);
             this.lstWatchList.Name = "lstWatchList";
             this.lstWatchList.Size = new System.Drawing.Size(256, 329);
             this.lstWatchList.TabIndex = 0;
@@ -78,7 +88,7 @@
             this.cmbProcessSelect.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.cmbProcessSelect.Enabled = false;
             this.cmbProcessSelect.FormattingEnabled = true;
-            this.cmbProcessSelect.Location = new System.Drawing.Point(12, 12);
+            this.cmbProcessSelect.Location = new System.Drawing.Point(12, 27);
             this.cmbProcessSelect.Name = "cmbProcessSelect";
             this.cmbProcessSelect.Size = new System.Drawing.Size(256, 21);
             this.cmbProcessSelect.TabIndex = 1;
@@ -87,7 +97,7 @@
             // 
             // btnAddProcess
             // 
-            this.btnAddProcess.Location = new System.Drawing.Point(274, 10);
+            this.btnAddProcess.Location = new System.Drawing.Point(274, 25);
             this.btnAddProcess.Name = "btnAddProcess";
             this.btnAddProcess.Size = new System.Drawing.Size(147, 23);
             this.btnAddProcess.TabIndex = 2;
@@ -121,9 +131,9 @@
             this.grpAffinity.Controls.Add(this.btnSaveAffinity);
             this.grpAffinity.Controls.Add(this.chkCPU00);
             this.grpAffinity.Controls.Add(this.lblProcessName);
-            this.grpAffinity.Location = new System.Drawing.Point(274, 39);
+            this.grpAffinity.Location = new System.Drawing.Point(274, 54);
             this.grpAffinity.Name = "grpAffinity";
-            this.grpAffinity.Size = new System.Drawing.Size(278, 341);
+            this.grpAffinity.Size = new System.Drawing.Size(278, 336);
             this.grpAffinity.TabIndex = 3;
             this.grpAffinity.TabStop = false;
             this.grpAffinity.Text = "Affinity";
@@ -152,7 +162,7 @@
             // btnRemoveProcess
             // 
             this.btnRemoveProcess.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnRemoveProcess.Location = new System.Drawing.Point(197, 312);
+            this.btnRemoveProcess.Location = new System.Drawing.Point(197, 307);
             this.btnRemoveProcess.Name = "btnRemoveProcess";
             this.btnRemoveProcess.Size = new System.Drawing.Size(75, 23);
             this.btnRemoveProcess.TabIndex = 18;
@@ -328,7 +338,7 @@
             // btnSaveAffinity
             // 
             this.btnSaveAffinity.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnSaveAffinity.Location = new System.Drawing.Point(7, 295);
+            this.btnSaveAffinity.Location = new System.Drawing.Point(7, 290);
             this.btnSaveAffinity.Name = "btnSaveAffinity";
             this.btnSaveAffinity.Size = new System.Drawing.Size(111, 40);
             this.btnSaveAffinity.TabIndex = 2;
@@ -373,7 +383,7 @@
             // 
             this.btnInfo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnInfo.Location = new System.Drawing.Point(510, 10);
+            this.btnInfo.Location = new System.Drawing.Point(510, 27);
             this.btnInfo.Name = "btnInfo";
             this.btnInfo.Size = new System.Drawing.Size(42, 31);
             this.btnInfo.TabIndex = 4;
@@ -381,25 +391,112 @@
             this.btnInfo.UseVisualStyleBackColor = true;
             this.btnInfo.Click += new System.EventHandler(this.btnInfo_Click);
             // 
+            // mnuMain
+            // 
+            this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mitFile,
+            this.mitPolling});
+            this.mnuMain.Location = new System.Drawing.Point(0, 0);
+            this.mnuMain.Name = "mnuMain";
+            this.mnuMain.Size = new System.Drawing.Size(564, 24);
+            this.mnuMain.TabIndex = 5;
+            this.mnuMain.Text = "mnuMain";
+            // 
+            // mitFile
+            // 
+            this.mitFile.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mitMinimizeTray,
+            this.mitExit});
+            this.mitFile.Name = "mitFile";
+            this.mitFile.Size = new System.Drawing.Size(37, 20);
+            this.mitFile.Text = "File";
+            // 
+            // mitMinimizeTray
+            // 
+            this.mitMinimizeTray.Checked = true;
+            this.mitMinimizeTray.CheckOnClick = true;
+            this.mitMinimizeTray.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mitMinimizeTray.Name = "mitMinimizeTray";
+            this.mitMinimizeTray.Size = new System.Drawing.Size(180, 22);
+            this.mitMinimizeTray.Text = "Minimize to tray";
+            this.mitMinimizeTray.Click += new System.EventHandler(this.mitMinimizeTray_Click);
+            // 
+            // mitExit
+            // 
+            this.mitExit.Name = "mitExit";
+            this.mitExit.Size = new System.Drawing.Size(180, 22);
+            this.mitExit.Text = "Exit";
+            this.mitExit.Click += new System.EventHandler(this.mitExit_Click);
+            // 
+            // mitPolling
+            // 
+            this.mitPolling.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.mitPoll5,
+            this.mitPoll10,
+            this.mitPoll30,
+            this.mitPoll60});
+            this.mitPolling.Name = "mitPolling";
+            this.mitPolling.Size = new System.Drawing.Size(56, 20);
+            this.mitPolling.Text = "Polling";
+            // 
+            // mitPoll5
+            // 
+            this.mitPoll5.CheckOnClick = true;
+            this.mitPoll5.Name = "mitPoll5";
+            this.mitPoll5.Size = new System.Drawing.Size(180, 22);
+            this.mitPoll5.Text = "5 seconds";
+            this.mitPoll5.Click += new System.EventHandler(this.mitPoll5_Click);
+            // 
+            // mitPoll10
+            // 
+            this.mitPoll10.Checked = true;
+            this.mitPoll10.CheckOnClick = true;
+            this.mitPoll10.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.mitPoll10.Name = "mitPoll10";
+            this.mitPoll10.Size = new System.Drawing.Size(180, 22);
+            this.mitPoll10.Text = "10 seconds";
+            this.mitPoll10.Click += new System.EventHandler(this.mitPoll10_Click);
+            // 
+            // mitPoll30
+            // 
+            this.mitPoll30.CheckOnClick = true;
+            this.mitPoll30.Name = "mitPoll30";
+            this.mitPoll30.Size = new System.Drawing.Size(180, 22);
+            this.mitPoll30.Text = "30 seconds";
+            this.mitPoll30.Click += new System.EventHandler(this.mitPoll30_Click);
+            // 
+            // mitPoll60
+            // 
+            this.mitPoll60.CheckOnClick = true;
+            this.mitPoll60.Name = "mitPoll60";
+            this.mitPoll60.Size = new System.Drawing.Size(180, 22);
+            this.mitPoll60.Text = "60 seconds";
+            this.mitPoll60.Click += new System.EventHandler(this.mitPoll60_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(564, 391);
+            this.ClientSize = new System.Drawing.Size(564, 401);
             this.Controls.Add(this.btnInfo);
             this.Controls.Add(this.grpAffinity);
             this.Controls.Add(this.btnAddProcess);
             this.Controls.Add(this.cmbProcessSelect);
             this.Controls.Add(this.lstWatchList);
+            this.Controls.Add(this.mnuMain);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MainMenuStrip = this.mnuMain;
             this.MaximumSize = new System.Drawing.Size(800, 600);
-            this.MinimumSize = new System.Drawing.Size(580, 430);
+            this.MinimumSize = new System.Drawing.Size(580, 440);
             this.Name = "MainForm";
             this.Text = "ProcessAffinityWatcher";
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.grpAffinity.ResumeLayout(false);
             this.grpAffinity.PerformLayout();
+            this.mnuMain.ResumeLayout(false);
+            this.mnuMain.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -433,6 +530,15 @@
         private System.Windows.Forms.Label lblProcessStatus;
         private System.Windows.Forms.NotifyIcon trayMain;
         private System.Windows.Forms.Button btnInfo;
+        private System.Windows.Forms.MenuStrip mnuMain;
+        private System.Windows.Forms.ToolStripMenuItem mitFile;
+        private System.Windows.Forms.ToolStripMenuItem mitMinimizeTray;
+        private System.Windows.Forms.ToolStripMenuItem mitExit;
+        private System.Windows.Forms.ToolStripMenuItem mitPolling;
+        private System.Windows.Forms.ToolStripMenuItem mitPoll5;
+        private System.Windows.Forms.ToolStripMenuItem mitPoll10;
+        private System.Windows.Forms.ToolStripMenuItem mitPoll30;
+        private System.Windows.Forms.ToolStripMenuItem mitPoll60;
     }
 }
 
