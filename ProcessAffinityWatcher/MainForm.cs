@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Collections;
+using System.IO;
 
 namespace ProcessAffinityWatcher
 {
@@ -199,41 +200,55 @@ namespace ProcessAffinityWatcher
 
         private Dictionary<string, int> GetAffinitySettings()
         {
-            Debug.WriteLine("Settings loaded: " + Properties.Settings.Default.AffinitySettings);
 
             Dictionary<string, int> settings = new Dictionary<string, int>();
-            string s = Properties.Settings.Default.AffinitySettings;
-            if(s != null && s.Length > 0)
+
+            try
             {
-                string[] parts = s.Split('\\');
-                foreach (string p in parts)
+                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
+                string filePath = Path.Combine(specificFolder, "settings.config");
+                StreamReader sr = new StreamReader(filePath);
+
+                string line = sr.ReadLine();
+                while (line != null)
                 {
-                    string[] processAffinity = p.Split(new char[1] { ':' }, 2);
-                    if(processAffinity.Length == 2)
+                    string[] processAffinity = line.Split(new char[1] { ':' }, 2);
+                    if (processAffinity.Length == 2)
                     {
                         try
                         {
                             settings.Add(processAffinity[0], int.Parse(processAffinity[1]));
-                        } catch {}
+                        }
+                        catch { }
                     }
+                    line = sr.ReadLine();
                 }
-            }
+                sr.Close();
+            } catch { }
 
             return settings;
         }
 
         private void SaveAffinitySettings(Dictionary<string, int> settings)
         {
-            string[] parts = new string[settings.Count];
-            int i = 0;
-            foreach(string key in settings.Keys)
+            try
             {
-                parts[i] = key + ":" + settings[key].ToString();
-                i++;
-            }
+                string folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string specificFolder = Path.Combine(folder, "ProcessAffinityWatcher");
+                Directory.CreateDirectory(specificFolder);
 
-            Properties.Settings.Default.AffinitySettings = String.Join("\\", parts);
-            Properties.Settings.Default.Save();
+                StreamWriter sw = new StreamWriter(Path.Combine(specificFolder, "settings.config"));
+                foreach (string key in settings.Keys)
+                {
+                    sw.WriteLine(key + ":" + settings[key].ToString());
+                }
+
+                sw.Close();
+            } catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to save settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void SetProcessStatus(string processName, string status, bool onlyifempty = false)
