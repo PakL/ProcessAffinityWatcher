@@ -17,9 +17,14 @@ namespace ProcessAffinityWatcher
     {
 
         private bool waitCheckbox = false;
-        private Dictionary<string, string> lastStatus = new Dictionary<string, string>();
 
         private CheckBox[] checkBoxes = new CheckBox[16];
+
+        private List<Process> activeProcessList = new List<Process>();
+        private BindingSource activeProcessBs = new BindingSource();
+
+        private List<ProcessWatch> watchList = new List<ProcessWatch>();
+        private BindingSource watchBs = new BindingSource();
 
         public MainForm()
         {
@@ -42,45 +47,86 @@ namespace ProcessAffinityWatcher
             checkBoxes[14] = chkCPU14;
             checkBoxes[15] = chkCPU15;
 
+            activeProcessBs.DataSource = activeProcessList;
+            cmbProcessSelect.DisplayMember = "ProcessName";
+            cmbProcessSelect.ValueMember = "ProcessName";
+            cmbProcessSelect.DataSource = activeProcessBs;
+
+            watchBs.DataSource = watchList;
+            lstWatchList.DisplayMember = "ListDisplay";
+            lstWatchList.ValueMember = "ProcessName";
+            lstWatchList.DataSource = watchBs;
+
             TmrProcessCheck_Tick(null, null);
         }
 
         private void TmrProcessCheck_Tick(object sender, EventArgs e)
         {
+            // Disable processor checkboxes that are unavailable on this system
             int pc = Environment.ProcessorCount;
             for(int i = 1; i < checkBoxes.Length; i++)
             {
                 if(pc < (i+1)) checkBoxes[i].Enabled = false;
             }
 
+            // Refresh active processes list
             cmbProcessSelect.Enabled = false;
-            cmbProcessSelect.Items.Clear();
+            //activeProcessList.Clear();
+            
             Process[] processes = Process.GetProcesses();
-            List<string> processNames = new List<string>();
 
-            foreach (Process process in processes)
+            for(int i = 0; i < activeProcessList.Count; i++)
             {
-                if(!processNames.Contains(process.ProcessName))
+                if (!processes.Contains(activeProcessList[i]))
                 {
-                    processNames.Add(process.ProcessName);
+                    activeProcessList.Remove(activeProcessList[i]);
+                    i--;
                 }
             }
 
-            processNames.Sort(new ProcessNameComparer());
-            foreach (string processName in processNames)
+            foreach (Process process in processes)
             {
-                cmbProcessSelect.Items.Add(processName);
+                if(activeProcessList.Contains(process))
+                {
+                    continue;
+                } else
+                {
+                    bool found = false;
+                    foreach (Process p in activeProcessList)
+                    {
+                        if (p.ProcessName == process.ProcessName)
+                        {
+                            found = true;
+                            if (p.MainWindowTitle == null || p.MainWindowTitle.Length <= 0)
+                            {
+                                activeProcessList.Remove(p);
+                                found = false;
+                            }
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        activeProcessList.Add(process);
+                    }
+                }
+
             }
+
+            activeProcessList.Sort(new ProcessComparer());
+            activeProcessBs.ResetBindings(false);
             cmbProcessSelect.Enabled = true;
 
-            if (sender == null) lstWatchList.Items.Clear();
+
+            // Check affinity status
+            if (sender == null) watchList.Clear();
 
             Dictionary<string, int> settings = GetAffinitySettings();
             foreach(string key in settings.Keys)
             {
                 if (sender == null)
                 {
-                    lstWatchList.Items.Add(key);
+                    watchList.Add(new ProcessWatch() { ProcessName = key, LastStatus = "", StatusNum = 0 });
                 }
 
                 processes = Process.GetProcessesByName(key);
@@ -92,17 +138,19 @@ namespace ProcessAffinityWatcher
                         if (process.ProcessorAffinity.ToInt32() != settings[key])
                         {
                             process.ProcessorAffinity = new IntPtr(settings[key]);
-                            SetProcessStatus(key, "Affinity set at " + DateTime.Now.ToLongTimeString());
+                            SetProcessStatus(key, "Affinity set at " + DateTime.Now.ToLongTimeString(), 2);
                         } else
                         {
-                            SetProcessStatus(key, "Affinity already correct", true);
+                            SetProcessStatus(key, "Affinity already correct", 2, true);
                         }
                     }
                 } else
                 {
-                    SetProcessStatus(key, "Process not found at " + DateTime.Now.ToLongTimeString());
+                    SetProcessStatus(key, "Process not found at " + DateTime.Now.ToLongTimeString(), 1);
                 }
             }
+
+            watchBs.ResetBindings(false);
         }
 
         private void CmbProcessSelect_Enter(object sender, EventArgs e)
@@ -124,20 +172,31 @@ namespace ProcessAffinityWatcher
             string value = cmbProcessSelect.Text;
             if(value != null && value != "")
             {
-                if (!lstWatchList.Items.Contains(value))
+                int i = 0;
+                foreach(ProcessWatch pw in watchList)
                 {
-                    lstWatchList.Items.Add(value);
-                    Dictionary<string, int> settings = GetAffinitySettings();
-                    int startAffinity = (int)Math.Pow(2, Environment.ProcessorCount) - 1;
-                    Process[] process = Process.GetProcessesByName(value);
-                    if (process.Length > 0)
+                    if(pw.ProcessName == value)
                     {
-                        startAffinity = process[0].ProcessorAffinity.ToInt32();
+                        lstWatchList.SelectedIndex = i;
+                        return;
                     }
-                    settings.Add(value, startAffinity);
-                    SaveAffinitySettings(settings);
+                    i++;
                 }
-                lstWatchList.SelectedIndex = lstWatchList.Items.Count-1;
+
+                watchList.Add(new ProcessWatch() { ProcessName = value, LastStatus = "", StatusNum = 0 });
+                Dictionary<string, int> settings = GetAffinitySettings();
+                int startAffinity = (int)Math.Pow(2, Environment.ProcessorCount) - 1;
+                Process[] process = Process.GetProcessesByName(value);
+                if (process.Length > 0)
+                {
+                    startAffinity = process[0].ProcessorAffinity.ToInt32();
+                }
+                settings.Add(value, startAffinity);
+                SaveAffinitySettings(settings);
+
+                watchBs.ResetBindings(false);
+
+                lstWatchList.SelectedIndex = watchList.Count-1;
             }
         }
 
@@ -145,15 +204,16 @@ namespace ProcessAffinityWatcher
         {
             if (lstWatchList.SelectedIndex < 0) return;
 
-            string processSelected = lstWatchList.Items[lstWatchList.SelectedIndex].ToString();
+            string processSelected = watchList[lstWatchList.SelectedIndex].ProcessName;
             lblProcessName.Text = "Set affinity for " + processSelected + ":";
 
-            if(lastStatus.ContainsKey(processSelected))
+            foreach(ProcessWatch pw in watchList)
             {
-                lblProcessStatus.Text = lastStatus[processSelected];
-            } else
-            {
-                lblProcessStatus.Text = "---";
+                if(pw.ProcessName == processSelected)
+                {
+                    lblProcessStatus.Text = pw.LastStatus.Length > 0 ? pw.LastStatus : "---";
+                    break;
+                }
             }
 
             Dictionary<string, int> settings = GetAffinitySettings();
@@ -251,25 +311,28 @@ namespace ProcessAffinityWatcher
             }
         }
 
-        private void SetProcessStatus(string processName, string status, bool onlyifempty = false)
+        private void SetProcessStatus(string processName, string status, int statusnum, bool onlyifstatuslower = false)
         {
-            if (lastStatus.ContainsKey(processName))
+            foreach(ProcessWatch pw in watchList)
             {
-                if (onlyifempty) return;
-                lastStatus[processName] = status;
-            }
-            else
-            {
-                lastStatus.Add(processName, status);
+                if(pw.ProcessName == processName)
+                {
+                    if (pw.StatusNum >= statusnum && onlyifstatuslower) return;
+                    pw.LastStatus = status;
+                    pw.StatusNum = statusnum;
+                    break;
+                }
             }
 
             if (lstWatchList.SelectedIndex < 0) return;
-            string processSelected = lstWatchList.Items[lstWatchList.SelectedIndex].ToString();
+            string processSelected = watchList[lstWatchList.SelectedIndex].ProcessName;
 
             if(processSelected == processName)
             {
                 lblProcessStatus.Text = status;
             }
+
+            watchBs.ResetBindings(false);
         }
 
         private void chkCPUAll_CheckedChanged(object sender, EventArgs e)
@@ -298,7 +361,7 @@ namespace ProcessAffinityWatcher
         private void btnSaveAffinity_Click(object sender, EventArgs e)
         {
             if (lstWatchList.SelectedIndex < 0) return;
-            string processSelected = lstWatchList.Items[lstWatchList.SelectedIndex].ToString();
+            string processSelected = watchList[lstWatchList.SelectedIndex].ProcessName;
 
             int affinityMask = 0;
             for (int i = 0; i < checkBoxes.Length; i++)
@@ -323,32 +386,33 @@ namespace ProcessAffinityWatcher
                 {
                     process.ProcessorAffinity = new IntPtr(affinityMask);
                 }
-                SetProcessStatus(processSelected, "Affinity set at " + DateTime.Now.ToLongTimeString());
+                SetProcessStatus(processSelected, "Affinity set at " + DateTime.Now.ToLongTimeString(), 2);
             }
             else
             {
-                SetProcessStatus(processSelected, "Process not found at " + DateTime.Now.ToLongTimeString());
+                SetProcessStatus(processSelected, "Process not found at " + DateTime.Now.ToLongTimeString(), 1);
             }
         }
 
         private void btnRemoveProcess_Click(object sender, EventArgs e)
         {
             if (lstWatchList.SelectedIndex < 0) return;
-            string processSelected = lstWatchList.Items[lstWatchList.SelectedIndex].ToString();
+            string processSelected = watchList[lstWatchList.SelectedIndex].ProcessName;
 
             Dictionary<string, int> settings = GetAffinitySettings();
             settings.Remove(processSelected);
             SaveAffinitySettings(settings);
 
-            lstWatchList.Items.RemoveAt(lstWatchList.SelectedIndex);
+            watchList.RemoveAt(lstWatchList.SelectedIndex);
 
-            if(lstWatchList.Items.Count > 0)
+            if(watchList.Count > 0)
             {
                 lstWatchList.SelectedIndex = 0;
             } else
             {
                 lstWatchList.SelectedIndex = -1;
             }
+            watchBs.ResetBindings(false);
         }
 
         private void trayMain_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -373,11 +437,29 @@ namespace ProcessAffinityWatcher
         }
     }
 
-    public class ProcessNameComparer : IComparer<string>
+    public class ProcessComparer : IComparer<Process>
     {
-        public int Compare(string a, string b)
+        public int Compare(Process a, Process b)
         {
-            return new CaseInsensitiveComparer().Compare(a, b);
+            if((a.MainWindowTitle != null && a.MainWindowTitle.Length > 0) && (b.MainWindowTitle == null || b.MainWindowTitle.Length <= 0))
+            {
+                return -1;
+            } else if((a.MainWindowTitle == null || a.MainWindowTitle.Length <= 0) && (b.MainWindowTitle != null && b.MainWindowTitle.Length > 0))
+            {
+                return 1;
+            }
+            return new CaseInsensitiveComparer().Compare(a.ProcessName, b.ProcessName);
         }
     }
+
+    public class ProcessWatch
+    {
+        public string ProcessName { get; set; }
+        public string LastStatus { get; set; }
+        public int StatusNum { get; set; }
+
+        public string ListDisplay { get { return (StatusNum == 0 ? "❓" : (StatusNum == 1 ? "❌" : "✔️")) + " " + ProcessName; } }
+
+    }
+
 }
